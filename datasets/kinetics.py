@@ -113,7 +113,7 @@ def make_dataset(root_path, annotation_path, subset, n_samples_for_each_video,
             'video': video_path,
             'segment': [begin_t, end_t],
             'n_frames': n_frames,
-            'video_id': video_names[i][:-14].split('/')[1]
+            'video_id': video_names[i]
         }
         if len(annotations) != 0:
             sample['label'] = class_to_idx[annotations[i]['label']]
@@ -195,7 +195,7 @@ def make_dataset_human_det(root_path, annotation_path, subset, n_samples_for_eac
             'video': video_path,
             'segment': [begin_t, end_t],
             'n_frames': n_frames,
-            'video_id': video_names[i][:-14].split('/')[1]
+            'video_id': video_names[i]
         }
         if len(annotations) != 0:
             sample['label'] = class_to_idx[annotations[i]['label']]
