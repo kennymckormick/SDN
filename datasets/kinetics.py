@@ -147,7 +147,7 @@ def is_video_valid_det(cur_vid_dets, n_frames, det_th=0.3, ratio_th=0.7):
     if cnt/n_frames >= ratio_th:
         return True
     else:
-        return False        
+        return False
 
 def make_dataset_human_det(root_path, annotation_path, subset, n_samples_for_each_video,
                  sample_duration, dets):
@@ -219,13 +219,13 @@ def make_dataset_human_det(root_path, annotation_path, subset, n_samples_for_eac
                 dataset.append(sample_j)
 
     print('len(dataset) after filtering the videos without sufficient detections: [{}/{}]'.format(len(dataset), num_samples_wo_filtering))
-    
+
     # repeat the dataset so that the number of samples can be matched to the original dataset w/o filtering
     if len(dataset) < num_samples_wo_filtering:
         num_repeat = np.ceil(num_samples_wo_filtering/len(dataset)).astype(np.int32)
         dataset_repeat = copy.deepcopy(dataset)
-        for i in range(1, num_repeat):           
-            dataset_shuffled = copy.deepcopy(dataset) 
+        for i in range(1, num_repeat):
+            dataset_shuffled = copy.deepcopy(dataset)
             np.random.shuffle(dataset_shuffled)
             dataset_repeat += dataset_shuffled
 
@@ -241,9 +241,9 @@ def gen_mask(img, dets, idx, th=0.3):
             poly = [(det[0], det[1]), (det[0], det[3]), (det[2], det[3]), (det[2], det[1])]
             ImageDraw.Draw(mask_img).polygon(poly, fill=0) # black-out mask
     mask = mask_img
-    
+
     is_eff_masking = True if cnt > 0 else False
-    
+
     return mask, is_eff_masking
 
 
@@ -255,9 +255,9 @@ def maskout_human(img, dets, idx, th=0.3):
             cnt += 1
             poly = [(det[0], det[1]), (det[0], det[3]), (det[2], det[3]), (det[2], det[1])]
             ImageDraw.Draw(img).polygon(poly, fill=pixel_mean) # black-out mask
-    
+
     is_eff_masking = True if cnt > 0 else False
-  
+
     return img, is_eff_masking
 
 
@@ -361,7 +361,7 @@ class Kinetics_adv(data.Dataset):
         self.is_place_soft_label = is_place_soft_label
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
-        self.target_transform = target_transform        
+        self.target_transform = target_transform
         if place_pred_path is not None:
             if 'train' in subset:
                 place_pred_files = gb.glob(place_pred_path+'/*{}*.npy'.format('train'))
@@ -369,8 +369,8 @@ class Kinetics_adv(data.Dataset):
                 place_pred_files = gb.glob(place_pred_path+'/*{}*.npy'.format('val'))
             self.place_pred = dict()
             for place_pred_file in place_pred_files:
-                self.place_pred.update(np.load(place_pred_file).item())       
-                
+                self.place_pred.update(np.load(place_pred_file, allow_pickle=True).item())
+
         vid = list(self.place_pred[ list(self.place_pred.keys())[0]].keys())[0]
         if isinstance(self.place_pred[list(self.place_pred.keys())[0]][vid]['pred_cls'], np.ndarray):
             self.multiple_place_inds = True
@@ -399,14 +399,14 @@ class Kinetics_adv(data.Dataset):
         target = self.data[index]
         if self.target_transform is not None:
             target = self.target_transform(target)
-        
+
         if self.is_place_soft_label:
             if self.multiple_place_inds:
                 place_soft_target = np.mean(self.place_pred[path.split('/')[-2]][self.data[index]['video_id']]['probs'],axis=0)
             else:
                 place_soft_target = self.place_pred[path.split('/')[-2]][self.data[index]['video_id']]['probs']
             return clip, target, place_soft_target
-        else:          
+        else:
             place_index = self.place_pred[path.split('/')[-2]][self.data[index]['video_id']]['pred_cls']
             if self.multiple_place_inds:
                 place_index = np.bincount(place_index).argmax()
@@ -452,19 +452,19 @@ class Kinetics_bkgmsk(data.Dataset):
 
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
-        self.target_transform = target_transform        
+        self.target_transform = target_transform
         if detection_path is not None:
             if 'train' in subset:
                 detection_file = os.path.join(detection_path, 'detection_{}_merged_rearranged.npy'.format('train'))
-                print('loading human dets from {} ...'.format(detection_file))       
-                self.human_dets_tr = np.load(detection_file).item()
-                print('loading human dets from {} done'.format(detection_file))       
+                print('loading human dets from {} ...'.format(detection_file))
+                self.human_dets_tr = np.load(detection_file, allow_pickle=True).item()
+                print('loading human dets from {} done'.format(detection_file))
             elif 'val' in subset:
                 detection_file = os.path.join(detection_path, 'detection_{}_merged_rearranged.npy'.format('val'))
-                print('loading human dets from {} ...'.format(detection_file))       
-                self.human_dets_val = np.load(detection_file).item()
-                print('loading human dets from {} done'.format(detection_file))       
-            
+                print('loading human dets from {} ...'.format(detection_file))
+                self.human_dets_val = np.load(detection_file, allow_pickle=True).item()
+                print('loading human dets from {} done'.format(detection_file))
+
         self.loader = get_loader()
         self.mask_ratio = mask_ratio # blurred bkg video ratio within batch
 
@@ -481,7 +481,7 @@ class Kinetics_bkgmsk(data.Dataset):
         if self.temporal_transform is not None:
             frame_indices = self.temporal_transform(frame_indices)
         clip = self.loader(path, frame_indices)
-        
+
         # get human detections for the current clip
         human_dets = self.human_dets_tr if self.subset == 'training' else self.human_dets_val
 
@@ -489,7 +489,7 @@ class Kinetics_bkgmsk(data.Dataset):
         for idx in frame_indices:
             cur_human_dets.append(human_dets[path.split('/')[-2]][path.split('/')[-1][:11]][idx]['human_boxes'])
 
-        # mask out the backgrounds 
+        # mask out the backgrounds
         fg_imgs, masks = [], []
         rands = np.random.rand(1)
         for i,frm in enumerate(clip):
@@ -505,7 +505,7 @@ class Kinetics_bkgmsk(data.Dataset):
                     fg_img = frm
             fg_imgs.extend([fg_img])
             masks.extend([mask])
-        
+
         clip = fg_imgs
 
         if self.spatial_transform is not None:
@@ -555,20 +555,20 @@ class Kinetics_human_msk(data.Dataset):
                  mask_th=0.5):
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
-        self.target_transform = target_transform        
+        self.target_transform = target_transform
 
         if detection_path is not None:
             if 'train' in subset:
                 detection_file = os.path.join(detection_path, 'detection_{}_merged_rearranged.npy'.format('train'))
-                print('loading human dets from {} ...'.format(detection_file))       
-                self.human_dets = np.load(detection_file).item()
-                print('loading human dets from {} done'.format(detection_file))       
+                print('loading human dets from {} ...'.format(detection_file))
+                self.human_dets = np.load(detection_file, allow_pickle=True).item()
+                print('loading human dets from {} done'.format(detection_file))
             elif 'val' in subset:
                 detection_file = os.path.join(detection_path, 'detection_{}_merged_rearranged.npy'.format('val'))
-                print('loading human dets from {} ...'.format(detection_file))       
-                self.human_dets = np.load(detection_file).item()
-                print('loading human dets from {} done'.format(detection_file))     
-        
+                print('loading human dets from {} ...'.format(detection_file))
+                self.human_dets = np.load(detection_file, allow_pickle=True).item()
+                print('loading human dets from {} done'.format(detection_file))
+
         self.loader = get_loader()
         self.mask_ratio = mask_ratio # blurred bkg video ratio within batch
         self.mask_th = mask_th
@@ -597,11 +597,11 @@ class Kinetics_human_msk(data.Dataset):
         for idx in frame_indices:
             cur_human_dets.append(self.human_dets[path.split('/')[-2]][path.split('/')[-1][:11]][idx]['human_boxes'])
 
-        # mask out the backgrounds 
+        # mask out the backgrounds
         fg_imgs, masks = [], []
-        rands = np.random.rand(1)                
+        rands = np.random.rand(1)
         mask_cnt = 0
-        
+
         for i,frm in enumerate(clip):
             bkg_img = Image.new('L', (frm.width, frm.height), 0)
             mask = bkg_img
@@ -612,10 +612,10 @@ class Kinetics_human_msk(data.Dataset):
                     fg_img, cnt = maskout_human(frm, cur_human_dets[i], i)
                     mask_cnt += cnt
                 else:
-                    fg_img = frm            
+                    fg_img = frm
             fg_imgs.extend([fg_img])
             masks.extend([mask])
-        
+
         clip = fg_imgs
         is_masking = True if mask_cnt/len(clip) >= self.mask_th else False
 
@@ -627,7 +627,7 @@ class Kinetics_human_msk(data.Dataset):
         target = self.data[index]
         if self.target_transform is not None:
             target = self.target_transform(target)
-                
+
         return clip, target, is_masking
 
     def __len__(self):
@@ -674,7 +674,7 @@ class Kinetics_adv_msk(data.Dataset):
         self.is_place_soft_label = is_place_soft_label
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
-        self.target_transform = target_transform        
+        self.target_transform = target_transform
         if place_pred_path is not None:
             if 'train' in subset:
                 place_pred_files = gb.glob(place_pred_path+'/*{}*.npy'.format('train'))
@@ -682,8 +682,8 @@ class Kinetics_adv_msk(data.Dataset):
                 place_pred_files = gb.glob(place_pred_path+'/*{}*.npy'.format('val'))
             self.place_pred = dict()
             for place_pred_file in place_pred_files:
-                self.place_pred.update(np.load(place_pred_file).item())       
-                
+                self.place_pred.update(np.load(place_pred_file, allow_pickle=True).item())
+
         vid = list(self.place_pred[ list(self.place_pred.keys())[0]].keys())[0]
         if isinstance(self.place_pred[list(self.place_pred.keys())[0]][vid]['pred_cls'], np.ndarray):
             self.multiple_place_inds = True
@@ -693,15 +693,15 @@ class Kinetics_adv_msk(data.Dataset):
         if detection_path is not None:
             if 'train' in subset:
                 detection_file = os.path.join(detection_path, 'detection_{}_merged_rearranged.npy'.format('train'))
-                print('loading human dets from {} ...'.format(detection_file))       
-                self.human_dets_tr = np.load(detection_file).item()
-                print('loading human dets from {} done'.format(detection_file))       
+                print('loading human dets from {} ...'.format(detection_file))
+                self.human_dets_tr = np.load(detection_file, allow_pickle=True).item()
+                print('loading human dets from {} done'.format(detection_file))
             elif 'val' in subset:
                 detection_file = os.path.join(detection_path, 'detection_{}_merged_rearranged.npy'.format('val'))
-                print('loading human dets from {} ...'.format(detection_file))       
-                self.human_dets_val = np.load(detection_file).item()
-                print('loading human dets from {} done'.format(detection_file))     
-        
+                print('loading human dets from {} ...'.format(detection_file))
+                self.human_dets_val = np.load(detection_file, allow_pickle=True).item()
+                print('loading human dets from {} done'.format(detection_file))
+
         self.loader = get_loader()
         self.mask_ratio = mask_ratio # blurred bkg video ratio within batch
         self.mask_th = mask_th
@@ -727,11 +727,11 @@ class Kinetics_adv_msk(data.Dataset):
         for idx in frame_indices:
             cur_human_dets.append(human_dets[path.split('/')[-2]][path.split('/')[-1][:11]][idx]['human_boxes'])
 
-        # mask out the backgrounds 
+        # mask out the backgrounds
         fg_imgs, masks = [], []
-        rands = np.random.rand(1)                
+        rands = np.random.rand(1)
         mask_cnt = 0
-        
+
         for i,frm in enumerate(clip):
             bkg_img = Image.new('L', (frm.width, frm.height), 0)
             mask = bkg_img
@@ -742,10 +742,10 @@ class Kinetics_adv_msk(data.Dataset):
                     fg_img, cnt = maskout_human(frm, cur_human_dets[i], i)
                     mask_cnt += cnt
                 else:
-                    fg_img = frm            
+                    fg_img = frm
             fg_imgs.extend([fg_img])
             masks.extend([mask])
-        
+
         clip = fg_imgs
         is_masking = True if mask_cnt/len(clip) >= self.mask_th else False
 
@@ -757,14 +757,14 @@ class Kinetics_adv_msk(data.Dataset):
         target = self.data[index]
         if self.target_transform is not None:
             target = self.target_transform(target)
-        
+
         if self.is_place_soft_label:
             if self.multiple_place_inds:
                 place_soft_target = np.mean(self.place_pred[path.split('/')[-2]][self.data[index]['video_id']]['probs'],axis=0)
             else:
                 place_soft_target = self.place_pred[path.split('/')[-2]][self.data[index]['video_id']]['probs']
             return clip, target, place_soft_target, is_masking
-        else:          
+        else:
             place_index = self.place_pred[path.split('/')[-2]][self.data[index]['video_id']]['pred_cls']
             if self.multiple_place_inds:
                 place_index = np.bincount(place_index).argmax()
