@@ -229,7 +229,9 @@ def make_dataset_human_det(root_path, annotation_path, subset, n_samples_for_eac
             np.random.shuffle(dataset_shuffled)
             dataset_repeat += dataset_shuffled
 
-    return dataset_repeat[:num_samples_wo_filtering], idx_to_class
+        return dataset_repeat[:num_samples_wo_filtering], idx_to_class
+    else:
+        return dataset, idx_to_class
 
 
 def gen_mask(img, dets, idx, th=0.3):
