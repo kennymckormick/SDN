@@ -27,7 +27,7 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, opt,
         data_time.update(time.time() - end_time)
             
         if not opt.no_cuda:
-            targets = targets.cuda(async=True)
+            targets = targets.cuda()
         if opt.model == 'vgg':
             inputs = inputs.squeeze()
         inputs = Variable(inputs)
@@ -122,8 +122,8 @@ def train_adv_epoch(epoch, data_loader, model, criterions, optimizer, opt,
         data_time.update(time.time() - end_time)
 
         if not opt.no_cuda:
-            targets = targets.cuda(async=True)
-            places = places.cuda(async=True)
+            targets = targets.cuda()
+            places = places.cuda()
         if opt.model == 'vgg':
             inputs = inputs.squeeze()
         inputs = Variable(inputs)
@@ -276,9 +276,9 @@ def train_adv_msk_epoch(epoch, data_loaders, model, criterions, optimizer, opt,
     for i, ((inputs_unmasked, targets_unmasked, places_unmasked), (inputs_masked, targets_masked, maskings)) in enumerate(zip(data_loader_unmasked, data_loader_masked)):    
         data_time.update(time.time() - end_time)
         if not opt.no_cuda:
-            targets_unmasked = targets_unmasked.cuda(async=True)
-            places_unmasked = places_unmasked.cuda(async=True)
-            targets_masked = targets_masked.cuda(async=True)
+            targets_unmasked = targets_unmasked.cuda()
+            places_unmasked = places_unmasked.cuda()
+            targets_masked = targets_masked.cuda()
 
         # # ------------------------------------------------
         # #  Train using Action CE loss and Place ADV loss

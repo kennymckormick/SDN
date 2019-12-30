@@ -24,7 +24,7 @@ def val_epoch(epoch, data_loader, model, criterion, opt, logger, tb_writer=None)
         data_time.update(time.time() - end_time)
 
         if not opt.no_cuda:
-            targets = targets.cuda(async=True)
+            targets = targets.cuda()
         if opt.model == 'vgg':
             inputs = inputs.squeeze()            
         inputs = Variable(inputs, volatile=True)
@@ -88,8 +88,8 @@ def val_adv_epoch(epoch, data_loader, model, criterions, opt, logger, tb_writer=
         data_time.update(time.time() - end_time)
 
         if not opt.no_cuda:
-            targets = targets.cuda(async=True)
-            places = places.cuda(async=True)
+            targets = targets.cuda()
+            places = places.cuda()
         if opt.model == 'vgg':
             inputs = inputs.squeeze()                 
         inputs = Variable(inputs, volatile=True)
@@ -207,9 +207,9 @@ def val_adv_msk_epoch(epoch, data_loaders, model, criterions, opt, logger, tb_wr
     for i, ((inputs_unmasked, targets_unmasked, places_unmasked), (inputs_masked, targets_masked, maskings)) in enumerate(zip(data_loader_unmasked, data_loader_masked)):    
         data_time.update(time.time() - end_time)
         if not opt.no_cuda:
-            targets_unmasked = targets_unmasked.cuda(async=True)
-            places_unmasked = places_unmasked.cuda(async=True)
-            targets_masked = targets_masked.cuda(async=True)
+            targets_unmasked = targets_unmasked.cuda()
+            places_unmasked = places_unmasked.cuda()
+            targets_masked = targets_masked.cuda()
 
         # ----------------------------------------------------
         #  Validation on Action CE loss and Place ADV loss
